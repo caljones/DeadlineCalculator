@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deadline Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:     #1a1a2e;
+      --paper:   #f5f0e8;
+      --accent:  #c0392b;
+      --mid:     #7f8c8d;
+      --border:  #d4c9b0;
+      --card:    #fffdf7;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 1.75rem;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 1rem;
+    }
+
+    .header-eyebrow {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .header p {
+      font-size: 0.72rem;
+      color: var(--mid);
+      margin-top: 0.4rem;
+      line-height: 1.6;
+    }
+
+    /* Input block */
+    .input-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-block label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: stretch;
+    }
+
+    input[type="date"] {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      padding: 0.6rem 0.8rem;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="date"]:focus {
+      border-color: var(--ink);
+    }
+
+    button {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.1rem;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: var(--accent); }
+    button:active { transform: scale(0.97); }
+
+    /* Results */
+    .results {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .results.visible { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 0.25rem;
+    }
+
+    .deadline-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--border);
+      padding: 0.7rem 0.9rem;
+      border-radius: 2px;
+      transition: border-left-color 0.2s;
+    }
+
+    .deadline-card:hover { border-left-color: var(--accent); }
+
+    .card-left { display: flex; flex-direction: column; gap: 0.2rem; }
+
+    .card-tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    .card-date {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .card-badge {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.25rem 0.55rem;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    /* Final deadline row */
+    .final-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--ink);
+      color: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 0.7rem 0.9rem;
+      border-radius: 2px;
+      margin-top: 0.25rem;
+    }
+
+    .final-card .card-tag { color: #aaa; }
+    .final-card .card-date { color: var(--paper); }
+    .final-card .card-badge {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-eyebrow">Planning Tool</div>
+    <h1>Deadline<br>Calculator</h1>
+    <p>Enter your final deadline to generate four key milestone dates.</p>
+  </div>
+
+  <div class="input-block">
+    <label for="deadline">Final Deadline Date</label>
+    <div class="input-row">
+      <input type="date" id="deadline" />
+      <button onclick="calculate()">Calculate</button>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="results-label">Sub-deadlines</div>
+
+    <div class="deadline-card">
+      <div class="card-left">
+        <span class="card-tag">First Check-in</span>
+        <span class="card-date" id="d15"></span>
+      </div>
+      <span class="card-badge">−15 days</span>
+    </div>
+
+    <div class="deadline-card">
+      <div class="card-left">
+        <span class="card-tag">Second Check-in</span>
+        <span class="card-date" id="d10"></span>
+      </div>
+      <span class="card-badge">−10 days</span>
+    </div>
+
+    <div class="deadline-card">
+      <div class="card-left">
+        <span class="card-tag">Third Check-in</span>
+        <span class="card-date" id="d5"></span>
+      </div>
+      <span class="card-badge">−5 days</span>
+    </div>
+
+    <div class="deadline-card">
+      <div class="card-left">
+        <span class="card-tag">Final Review</span>
+        <span class="card-date" id="d3"></span>
+      </div>
+      <span class="card-badge">−3 days</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="final-card">
+      <div class="card-left">
+        <span class="card-tag">Final Deadline</span>
+        <span class="card-date" id="dfinal"></span>
+      </div>
+      <span class="card-badge">Due</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function subtractDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() - days);
+    return d;
+  }
+
+  function formatDate(date) {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  function calculate() {
+    const val = document.getElementById('deadline').value;
+    if (!val) {
+      alert('Please select a deadline date.');
+      return;
+    }
+
+    // Parse as local date to avoid timezone shift
+    const [y, m, d] = val.split('-').map(Number);
+    const deadline = new Date(y, m - 1, d);
+
+    document.getElementById('d15').textContent    = formatDate(subtractDays(deadline, 15));
+    document.getElementById('d10').textContent    = formatDate(subtractDays(deadline, 10));
+    document.getElementById('d5').textContent     = formatDate(subtractDays(deadline, 5));
+    document.getElementById('d3').textContent     = formatDate(subtractDays(deadline, 3));
+    document.getElementById('dfinal').textContent = formatDate(deadline);
+
+    const results = document.getElementById('results');
+    results.classList.remove('visible');
+    void results.offsetWidth; // reflow to re-trigger animation
+    results.classList.add('visible');
+  }
+
+  // Allow Enter key to trigger calculation
+  document.getElementById('deadline').addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
